@@ -17,16 +17,20 @@ from src.adapters.alpha_vantage import fetch_overview
 from src.adapters.finnhub import domain_from_web, fetch_profile_metrics
 from src.adapters.github import fetch_github
 from src.adapters.gnews import fetch_gnews
+from src.adapters.justdial import fetch_justdial
 from src.adapters.newsapi import fetch_newsapi
 from src.adapters.nse import fetch_nse_announcements
 from src.adapters.rss import fetch_rss
 from src.adapters.sec_edgar import fetch_filings
+from src.adapters.tracxn import fetch_tracxn
+from src.adapters.trustpilot import fetch_trustpilot
 from src.adapters.wikipedia import fetch_wikipedia
 from src.adapters.yahoo import fetch_yahoo_quote, is_india_symbol
+from src.adapters.zauba import fetch_zauba
 from src.arrange_text import arrange_text
 from src.cache import load_news_day, save_news_day
 from src.http import HttpClient
-from src.merge import is_english_article, merge_dossier, merge_news_articles
+from src.merge import _wiki_facts, is_english_article, merge_dossier, merge_news_articles
 from src.news_enrich import enrich_articles, is_error_article, needs_content, pick_best_articles
 from src.news_relevance import filter_relevant_articles
 from src.paths import COMPANY_DIR, LASTRUN, RAW_DIR, company_key, ensure_dirs
@@ -86,6 +90,10 @@ async def run_pipeline(
                 ctx.domain = domain_from_web(ctx.website)
             if profile.get("name"):
                 ctx.name = profile.get("name")
+            if profile.get("city") and not ctx.city:
+                ctx.city = profile.get("city")
+            if profile.get("country") and not ctx.country:
+                ctx.country = profile.get("country")
             if profile.get("exchange"):
                 ctx.exchanges = [profile.get("exchange")]
 
@@ -104,6 +112,10 @@ async def run_pipeline(
             if profile.get("website") and not ctx.website:
                 ctx.website = profile.get("website")
                 ctx.domain = domain_from_web(ctx.website)
+            if profile.get("city") and not ctx.city:
+                ctx.city = profile.get("city")
+            if profile.get("country") and not ctx.country:
+                ctx.country = profile.get("country")
             if price.get("longName"):
                 ctx.name = price.get("longName")
 
@@ -151,17 +163,43 @@ async def run_pipeline(
         sources["rss"] = rss
         sources["alpha_vantage"] = av
 
-        if wiki.ok and isinstance(wiki.data, dict) and wiki.data.get("title"):
-            ctx.wiki_title = wiki.data.get("title")
-
-        _emit(55, "Fetching news articles")
+        if wiki.ok and isinstance(wiki.data, dict):
+            if wiki.data.get("title"):
+                ctx.wiki_title = wiki.data.get("title")
+            summary = wiki.data.get("summary") or {}
+            facts = _wiki_facts(summary.get("extract"), summary.get("description"))
+            if facts.get("city") and not ctx.city:
+                ctx.city = facts["city"]
+            if facts.get("country") and not ctx.country:
+                ctx.country = facts["country"]
         if av.ok and isinstance(av.data, dict):
             if av.data.get("Website") and not ctx.website:
                 ctx.website = av.data.get("Website")
                 ctx.domain = domain_from_web(ctx.website)
             if av.data.get("Name"):
                 ctx.name = av.data.get("Name")
+            if av.data.get("Country") and not ctx.country:
+                ctx.country = av.data.get("Country")
 
+        _emit(52, "Enriching company records")
+        if lite:
+            tracxn = SourceResult("tracxn", False, error="skipped_lite")
+            justdial = SourceResult("justdial", False, error="skipped_lite")
+            trustpilot = SourceResult("trustpilot", False, error="skipped_lite")
+            zauba = await fetch_zauba(http, ctx)
+        else:
+            tracxn, zauba, justdial, trustpilot = await asyncio.gather(
+                fetch_tracxn(http, ctx),
+                fetch_zauba(http, ctx),
+                fetch_justdial(http, ctx),
+                fetch_trustpilot(http, ctx),
+            )
+        sources["tracxn"] = tracxn
+        sources["zauba"] = zauba
+        sources["justdial"] = justdial
+        sources["trustpilot"] = trustpilot
+
+        _emit(55, "Fetching news articles")
         articles: list[dict[str, Any]] = []
         company_label = ctx.name or query
         if lite or skip_news:

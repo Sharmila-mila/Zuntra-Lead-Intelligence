@@ -15,6 +15,7 @@ from src.schema import (
     CompanyDossier,
     Filing,
     Financials,
+    Funding,
     Github,
     GithubOrg,
     GithubRepo,
@@ -23,7 +24,12 @@ from src.schema import (
     NewsArticle,
     Overview,
     PressItem,
+    Registry,
+    RegistryDirector,
+    Reputation,
     Resolved,
+    ReviewItem,
+    ReviewSummary,
     SourceStatus,
     SourcesStatus,
 )
@@ -122,6 +128,10 @@ def merge_dossier(
         "rss",
         "newsapi",
         "gnews",
+        "tracxn",
+        "zauba",
+        "justdial",
+        "trustpilot",
     ):
         sr = sources.get(name)
         if sr is None:
@@ -448,6 +458,102 @@ def merge_dossier(
         repos.sort(key=lambda x: x.stars or 0, reverse=True)
         github.repos = repos[:10]
 
+    registry = Registry()
+    zauba = sources.get("zauba")
+    if zauba and zauba.ok and isinstance(zauba.data, dict):
+        z = zauba.data
+        registry = Registry(
+            cin=z.get("cin"),
+            status=z.get("status"),
+            roc=z.get("roc"),
+            incorporated=z.get("incorporated"),
+            address=z.get("address"),
+            email=z.get("email"),
+            website=z.get("website"),
+            directors=[
+                RegistryDirector(
+                    name=d.get("name"),
+                    din=d.get("din"),
+                    designation=d.get("designation"),
+                )
+                for d in (z.get("directors") or [])
+                if isinstance(d, dict)
+            ],
+            source_url=z.get("source_url"),
+            via=["zauba"],
+        )
+        if not overview.address and z.get("address"):
+            overview.address = z.get("address")
+            if not overview.headquarters:
+                overview.headquarters = z.get("address")
+        if not overview.website and z.get("website"):
+            overview.website = z.get("website")
+        if not overview.founded and z.get("incorporated"):
+            overview.founded = z.get("incorporated")
+        _add_via(overview_via, "zauba")
+
+    funding = Funding()
+    tracxn = sources.get("tracxn")
+    if tracxn and tracxn.ok and isinstance(tracxn.data, dict):
+        t = tracxn.data
+        funding = Funding(
+            stage=t.get("stage"),
+            total_raised=t.get("total_raised"),
+            last_round=t.get("last_round"),
+            investors=[str(x) for x in (t.get("investors") or []) if x][:15],
+            competitors=[str(x) for x in (t.get("competitors") or []) if x][:12],
+            source_url=t.get("source_url"),
+            via=["tracxn"],
+        )
+        if not overview.website and t.get("website"):
+            overview.website = t.get("website")
+        if not overview.founded and t.get("founded"):
+            overview.founded = t.get("founded")
+        _add_via(overview_via, "tracxn")
+
+    summaries: list[ReviewSummary] = []
+    reviews: list[ReviewItem] = []
+    tp = sources.get("trustpilot")
+    if tp and tp.ok and isinstance(tp.data, dict):
+        summaries.append(
+            ReviewSummary(
+                provider="trustpilot",
+                rating=str(tp.data.get("rating") or "") or None,
+                review_count=tp.data.get("review_count"),
+                url=tp.data.get("url"),
+            )
+        )
+        for item in tp.data.get("reviews") or []:
+            if not isinstance(item, dict):
+                continue
+            reviews.append(
+                ReviewItem(
+                    provider="trustpilot",
+                    stars=item.get("stars"),
+                    title=item.get("title"),
+                    date=item.get("date"),
+                    url=item.get("url") or tp.data.get("url"),
+                )
+            )
+    jd = sources.get("justdial")
+    if jd and jd.ok and isinstance(jd.data, dict):
+        summaries.append(
+            ReviewSummary(
+                provider="justdial",
+                rating=str(jd.data.get("rating") or "") or None,
+                review_count=jd.data.get("review_count"),
+                url=jd.data.get("url") or jd.data.get("search_url"),
+            )
+        )
+        if not overview.phone and jd.data.get("phone"):
+            overview.phone = jd.data.get("phone")
+        if not overview.address and jd.data.get("address"):
+            overview.address = jd.data.get("address")
+        if not overview.website and jd.data.get("website"):
+            overview.website = jd.data.get("website")
+        _add_via(overview_via, "justdial")
+    reputation = Reputation(summaries=summaries, reviews=reviews[:8])
+
     articles: list[NewsArticle] = []
     for a in news_articles or []:
         cleaned = sanitize_article_fields(a)
@@ -472,6 +578,9 @@ def merge_dossier(
         ),
         press=press,
         github=github,
+        registry=registry,
+        funding=funding,
+        reputation=reputation,
         sources_status=status,
         meta=Meta(generated_at=generated_at, raw_path=raw_path, company_path=company_path),
     )

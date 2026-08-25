@@ -790,9 +790,68 @@ function renderCompanyDossier(dossier, titlePrefix, opts) {
             ${row('Country', val(overview.country))}
             ${overview.website ? row('Website', `<a class="link" href="${esc(overview.website)}" target="_blank">${esc(overview.website)}</a>`) : ''}
             ${row('Employees', val(overview.employees))}
+            ${overview.phone ? row('Phone', esc(overview.phone)) : ''}
+            ${overview.address ? row('Address', esc(overview.address)) : ''}
             ${resolved.exchanges && resolved.exchanges.length ? row('Exchange', esc(resolved.exchanges.join(', '))) : ''}
         </table>
     </div>`;
+    const registry = dossier.registry || {};
+    const funding = dossier.funding || {};
+    const reputation = dossier.reputation || {};
+    const directors = registry.directors || [];
+    if (registry.cin || directors.length || registry.status) {
+        const src = registry.source_url
+            ? row('Source', `<a class="link" href="${esc(registry.source_url)}" target="_blank">Zauba</a>`)
+            : '';
+        html += `<div class="card"><h3>Indian registry</h3><table>
+            ${row('CIN', val(registry.cin))}
+            ${row('Status', val(registry.status))}
+            ${row('RoC', val(registry.roc))}
+            ${row('Incorporated', val(registry.incorporated))}
+            ${row('Registered address', val(registry.address))}
+            ${registry.email ? row('Email', esc(registry.email)) : ''}
+            ${src}
+        </table>`;
+        if (directors.length) {
+            html += `<table class="filings-table">`;
+            directors.slice(0, 12).forEach(d => {
+                html += `<tr><td>${esc(d.name || '')}</td><td>${esc(d.din || '')}</td><td>${esc(d.designation || '')}</td></tr>`;
+            });
+            html += `</table>`;
+        }
+        html += `</div>`;
+    }
+    if (funding.stage || funding.total_raised || funding.last_round || (funding.investors || []).length) {
+        const src = funding.source_url
+            ? row('Source', `<a class="link" href="${esc(funding.source_url)}" target="_blank">Tracxn</a>`)
+            : '';
+        html += `<div class="card"><h3>Funding</h3><table>
+            ${row('Stage', val(funding.stage))}
+            ${row('Total raised', val(funding.total_raised))}
+            ${row('Last round', val(funding.last_round))}
+            ${(funding.investors || []).length ? row('Investors', esc((funding.investors || []).join(', '))) : ''}
+            ${(funding.competitors || []).length ? row('Competitors', esc((funding.competitors || []).join(', '))) : ''}
+            ${src}
+        </table></div>`;
+    }
+    const summaries = reputation.summaries || [];
+    const reviews = reputation.reviews || [];
+    if (summaries.length || reviews.length) {
+        html += `<div class="card"><h3>Reviews</h3><table>`;
+        summaries.forEach(s => {
+            const label = s.provider === 'justdial' ? 'Justdial' : s.provider === 'trustpilot' ? 'Trustpilot' : (s.provider || 'Reviews');
+            const score = [s.rating, s.review_count != null && s.review_count !== '' ? `${s.review_count} reviews` : ''].filter(Boolean).join(' · ');
+            const link = s.url ? `<a class="link" href="${esc(s.url)}" target="_blank">${esc(score || label)}</a>` : esc(score || '-');
+            html += row(label, link);
+        });
+        html += `</table>`;
+        reviews.slice(0, 8).forEach(r => {
+            const who = r.provider === 'justdial' ? 'Justdial' : r.provider === 'trustpilot' ? 'Trustpilot' : (r.provider || '');
+            const title = r.url ? `<a href="${esc(r.url)}" target="_blank">${esc(r.title || 'Review')}</a>` : esc(r.title || 'Review');
+            html += `<div class="news-item"><h4>${title}</h4><div class="meta">${esc(who)}${r.stars != null && r.stars !== '' ? ' · ' + esc(String(r.stars)) + '★' : ''}${r.date ? ' · ' + esc(r.date) : ''}</div></div>`;
+        });
+        html += `</div>`;
+    }
     if (options.leadId) {
         html += `<div class="card">
             <div class="card-actions" style="margin-top:0">
@@ -836,8 +895,7 @@ function renderCompanyDossier(dossier, titlePrefix, opts) {
             </table>
         </div>`;
     } else if (sources.yahoo || sources.finnhub || sources.alpha_vantage) {
-        const reason = (sources.yahoo && sources.yahoo.error) || (sources.finnhub && sources.finnhub.error) || (sources.alpha_vantage && sources.alpha_vantage.error) || 'unavailable';
-        html += `<div class="card"><h3>Financials</h3><p class="muted">Not available (${esc(reason)}). Try the parent company or stock ticker.</p></div>`;
+        html += `<div class="card"><h3>Financials</h3><p class="muted">no data found</p></div>`;
     }
     if (!options.leadId && news.length) {
         html += `<div class="card"><h3>Recent News (${news.length})</h3>`;
@@ -866,11 +924,11 @@ function renderCompanyDossier(dossier, titlePrefix, opts) {
         });
         html += `</table></div>`;
     } else if (sources.nse && sources.nse.error && sources.nse.error !== 'us_listing' && sources.nse.error !== 'not_india_listing') {
-        html += `<div class="card"><h3>Filings</h3><p class="muted">NSE announcements not available (${esc(sources.nse.error)}).</p></div>`;
+        html += `<div class="card"><h3>Filings</h3><p class="muted">no data found</p></div>`;
     } else if (sources.sec_edgar) {
         const reason = (sources.sec_edgar && sources.sec_edgar.error) || 'unavailable';
         const india = reason === 'india_listing';
-        html += `<div class="card"><h3>${india ? 'Filings' : 'SEC Filings'}</h3><p class="muted">${india ? 'No NSE announcements found for this listing.' : `Not available (${esc(reason)}). US filings need a resolved ticker/CIK.`}</p></div>`;
+        html += `<div class="card"><h3>${india ? 'Filings' : 'SEC Filings'}</h3><p class="muted">no data found</p></div>`;
     }
     return html;
 }

@@ -13,6 +13,8 @@ class CompanyContext:
     website: str | None = None
     domain: str | None = None
     wiki_title: str | None = None
+    city: str | None = None
+    country: str | None = None
     exchanges: list[str] = field(default_factory=list)
     sic: str | None = None
     sic_description: str | None = None

@@ -52,6 +52,7 @@ GROQ_API_KEY=
 GROQ_MODEL=
 NEWS_GROQ_MODEL=
 GITHUB_TOKEN=
+TRACXN_ACCESS_TOKEN=
 LINKEDIN_EMAIL=
 LINKEDIN_PASSWORD=
 SUPABASE_URL=
@@ -69,6 +70,7 @@ SUPABASE_SERVICE_ROLE_KEY=
 | `GROQ_MODEL` | Optional | Overview/highlights model |
 | `NEWS_GROQ_MODEL` | Optional | Faster model for news relevance |
 | `GITHUB_TOKEN` | Optional | GitHub org/repos (skipped if empty) |
+| `TRACXN_ACCESS_TOKEN` | Optional | Funding/investors (skipped if empty) |
 | `LINKEDIN_EMAIL` | Yes for People Lookup | Playwright login for search + scrape |
 | `LINKEDIN_PASSWORD` | Yes for People Lookup | Playwright login for search + scrape |
 | `SUPABASE_URL` | Recommended | Dossiers, people, bookmarks, workspace |

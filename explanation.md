@@ -336,6 +336,10 @@ Parallel adapter fetches:
     ├── alpha_vantage.py    ← overview/financials
     ├── github.py           ← org/repos
     ├── rss.py              ← company RSS feeds
+    ├── tracxn.py           ← funding (API token)
+    ├── zauba.py            ← Indian CIN/directors
+    ├── justdial.py         ← Indian listings/ratings
+    ├── trustpilot.py       ← reviews
     ├── newsapi.py          ← news discovery
     └── gnews.py            ← news discovery
     │
@@ -790,6 +794,7 @@ All secrets live in `not to share/.env` (gitignored). Loaded by Flask, pipeline,
 | `NEWS_GROQ_MODEL` | `news_relevance.py` | Falls back to `GROQ_MODEL` |
 | `GROQ_ARRANGE_MAX_CHARS` | `arrange_text.py` | Default 60000 |
 | `GITHUB_TOKEN` | `adapters/github.py`, `contacts.py` | GitHub org/email lookup |
+| `TRACXN_ACCESS_TOKEN` | `adapters/tracxn.py` | Funding/investors (skipped if empty) |
 | `LINKEDIN_EMAIL` | `lead scraper/config.py` | Playwright login |
 | `LINKEDIN_PASSWORD` | `lead scraper/config.py` | Playwright login |
 | `SUPABASE_URL` | `store.py` | Postgres backend |

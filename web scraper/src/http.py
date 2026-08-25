@@ -101,6 +101,37 @@ class HttpClient:
                 await asyncio.sleep(min(2 ** attempt, 3.0))
         raise last_err or RuntimeError("request failed")
 
+    async def post_json(
+        self,
+        url: str,
+        *,
+        json: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
+        retries: int = 3,
+        timeout: float | None = None,
+    ) -> Any:
+        last_err: Exception | None = None
+        req: dict[str, Any] = {"json": json, "headers": headers}
+        if timeout is not None:
+            req["timeout"] = timeout
+        for attempt in range(retries):
+            try:
+                resp = await self._client.post(url, **req)
+                if resp.status_code in (429, 500, 502, 503, 504):
+                    await asyncio.sleep(_retry_wait(resp, attempt))
+                    last_err = httpx.HTTPStatusError(
+                        f"HTTP {resp.status_code}",
+                        request=resp.request,
+                        response=resp,
+                    )
+                    continue
+                resp.raise_for_status()
+                return resp.json()
+            except Exception as exc:
+                last_err = exc
+                await asyncio.sleep(min(2 ** attempt, 3.0))
+        raise last_err or RuntimeError("request failed")
+
 
 class TokenBucket:
     def __init__(self, rate_per_sec: float, capacity: float | None = None) -> None:

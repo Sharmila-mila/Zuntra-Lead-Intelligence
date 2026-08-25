@@ -155,6 +155,55 @@ class Github(BaseModel):
     repos: list[GithubRepo] = Field(default_factory=list)
 
 
+class RegistryDirector(BaseModel):
+    name: str | None = None
+    din: str | None = None
+    designation: str | None = None
+
+
+class Registry(BaseModel):
+    cin: str | None = None
+    status: str | None = None
+    roc: str | None = None
+    incorporated: str | None = None
+    address: str | None = None
+    email: str | None = None
+    website: str | None = None
+    directors: list[RegistryDirector] = Field(default_factory=list)
+    source_url: str | None = None
+    via: list[str] = Field(default_factory=list)
+
+
+class Funding(BaseModel):
+    stage: str | None = None
+    total_raised: str | None = None
+    last_round: str | None = None
+    investors: list[str] = Field(default_factory=list)
+    competitors: list[str] = Field(default_factory=list)
+    source_url: str | None = None
+    via: list[str] = Field(default_factory=list)
+
+
+class ReviewSummary(BaseModel):
+    provider: str | None = None
+    rating: str | None = None
+    review_count: str | int | None = None
+    url: str | None = None
+
+
+class ReviewItem(BaseModel):
+    provider: str | None = None
+    stars: str | int | None = None
+    title: str | None = None
+    date: str | None = None
+    url: str | None = None
+
+
+class Reputation(BaseModel):
+    summaries: list[ReviewSummary] = Field(default_factory=list)
+    reviews: list[ReviewItem] = Field(default_factory=list)
+
+
 class SourcesStatus(BaseModel):
     finnhub: SourceStatus = Field(default_factory=SourceStatus)
     alpha_vantage: SourceStatus = Field(default_factory=SourceStatus)
@@ -166,6 +215,10 @@ class SourcesStatus(BaseModel):
     rss: SourceStatus = Field(default_factory=SourceStatus)
     newsapi: SourceStatus = Field(default_factory=SourceStatus)
     gnews: SourceStatus = Field(default_factory=SourceStatus)
+    tracxn: SourceStatus = Field(default_factory=SourceStatus)
+    zauba: SourceStatus = Field(default_factory=SourceStatus)
+    justdial: SourceStatus = Field(default_factory=SourceStatus)
+    trustpilot: SourceStatus = Field(default_factory=SourceStatus)
 
 
 class Meta(BaseModel):
@@ -183,5 +236,8 @@ class CompanyDossier(BaseModel):
     news: News = Field(default_factory=News)
     press: list[PressItem] = Field(default_factory=list)
     github: Github = Field(default_factory=Github)
+    registry: Registry = Field(default_factory=Registry)
+    funding: Funding = Field(default_factory=Funding)
+    reputation: Reputation = Field(default_factory=Reputation)
     sources_status: SourcesStatus = Field(default_factory=SourcesStatus)
     meta: Meta

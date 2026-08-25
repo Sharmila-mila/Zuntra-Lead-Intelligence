@@ -166,6 +166,7 @@ GROQ_API_KEY=
 GROQ_MODEL=
 NEWS_GROQ_MODEL=
 GITHUB_TOKEN=
+TRACXN_ACCESS_TOKEN=
 LINKEDIN_EMAIL=
 LINKEDIN_PASSWORD=
 SUPABASE_URL=
@@ -179,6 +180,7 @@ SUPABASE_SERVICE_ROLE_KEY=
 | `SEC_USER_AGENT` | SEC EDGAR (`AppName you@email.com`) |
 | `NEWSAPI_API_KEY` / `GNEWS_API_KEY` | News discovery |
 | `GROQ_API_KEY` | News relevance and overview text |
+| `TRACXN_ACCESS_TOKEN` | Optional funding/investors (skipped if empty) |
 | `LINKEDIN_EMAIL` / `LINKEDIN_PASSWORD` | Profile scrape session |
 | `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` | Dossiers, cache, workspace, bookmarks, people |
 
