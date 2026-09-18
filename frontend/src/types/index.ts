@@ -3,6 +3,8 @@ export interface CompanyOverview {
   legal_name?: string;
   ticker?: string;
   exchange?: string;
+  share_class?: string;
+  ceo?: string;
   description?: string;
   short_description?: string;
   industry?: string;
