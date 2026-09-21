@@ -18,6 +18,16 @@ from src.schema import (
     Resolved,
     SourceStatus,
     SourcesStatus,
+    Filing,
+    PressItem,
+    Github,
+    GithubOrg,
+    GithubRepo,
+    Registry,
+    RegistryDirector,
+    ReviewSummary,
+    Reputation,
+    NewsArticle,
 )
 from src.news_enrich import sanitize_article_fields
 
