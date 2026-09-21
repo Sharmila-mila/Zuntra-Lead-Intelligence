@@ -4,5 +4,10 @@
       "source": "/(.*)",
       "destination": "/index.html"
     }
-  ]
+  ],
+  "build": {
+    "env": {
+      "VITE_API_URL": "https://zuntra-lead-intelligence-production.up.railway.app"
+    }
+  }
 }
