@@ -37,6 +37,14 @@ def _add_via(values: list[str], source: str) -> None:
     if source not in values:
         values.append(source)
 
+def _num(value: Any) -> float | str | None:
+    if value is None or value == "":
+        return None
+    try:
+        return float(value)
+    except (ValueError, TypeError):
+        return str(value)
+
 def _wiki_facts(extract: str | None, short: str | None) -> dict[str, str]:
     text = f"{extract or ''} {short or ''}".strip()
     out: dict[str, str] = {}
