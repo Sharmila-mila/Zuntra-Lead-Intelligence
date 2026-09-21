@@ -9,26 +9,7 @@ from src.adapters.finnhub import domain_from_web
 from src.adapters.yahoo import map_yahoo_financials, map_yahoo_overview
 from src.adapters.alpha_vantage import map_overview_financials
 from src.cache import normalize_url
-from src.schema import (
-    CompanyDossier,
-    Executive,
-    Financials,
-    LinkedInInsights,
-    Overview,
-    Resolved,
-    SourceStatus,
-    SourcesStatus,
-    Filing,
-    PressItem,
-    Github,
-    GithubOrg,
-    GithubRepo,
-    Registry,
-    RegistryDirector,
-    ReviewSummary,
-    Reputation,
-    NewsArticle,
-)
+from src.schema import *
 from src.news_enrich import sanitize_article_fields
 
 _HQ_IN = re.compile(r"\b(?:headquartered|based)\s+in\s+([^.;]+)", re.I)
