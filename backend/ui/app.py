@@ -639,6 +639,7 @@ def api_company_stream():
     return Response(generate(), mimetype="text/event-stream", headers={
         "Cache-Control": "no-cache",
         "X-Accel-Buffering": "no",
+        "Access-Control-Allow-Origin": "*",
     })
 
 
@@ -860,6 +861,7 @@ def api_linkedin_stream():
         "Cache-Control": "no-cache",
         "X-Accel-Buffering": "no",
         "Connection": "keep-alive",
+        "Access-Control-Allow-Origin": "*",
     })
 
 
@@ -973,6 +975,7 @@ def api_linkedin_search():
         "Cache-Control": "no-cache",
         "X-Accel-Buffering": "no",
         "Connection": "keep-alive",
+        "Access-Control-Allow-Origin": "*",
     })
 
 
