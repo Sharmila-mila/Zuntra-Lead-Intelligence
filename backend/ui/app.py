@@ -35,8 +35,10 @@ load_dotenv(PROJECT_ROOT / ".env")
 
 
 from flask import Flask, Response, jsonify, request, send_from_directory, stream_with_context
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 
 sys.path.insert(0, str(WEB_SCRAPER_DIR))
 FRONT_DIR = PROJECT_ROOT / "frontend" / "front"
