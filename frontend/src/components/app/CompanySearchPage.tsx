@@ -116,6 +116,9 @@ export const CompanySearchPage: React.FC = () => {
         if (msg.pct) setProgress({ pct: msg.pct, step: msg.step || 'Processing data...' });
         if (msg.done) {
           setLoading(false);
+          if (msg.error) {
+            alert(`Backend Error: ${msg.error}`);
+          }
           if (msg.dossier) {
             setDossier(msg.dossier);
             fetchCompanyEmployees(query.trim())
@@ -128,6 +131,7 @@ export const CompanySearchPage: React.FC = () => {
       (err) => {
         setLoading(false);
         console.error('Company search error:', err);
+        alert('Connection error. Could not reach backend.');
       }
     );
   };
